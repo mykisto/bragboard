@@ -27,7 +27,8 @@ This explicitly rejects: Workable's corporate dashboard sterility (reviewed and 
 Custom Radix Colors palette (light + dark generated as a matched pair from the same two source colors - see [radix-ui.com/colors/custom](https://www.radix-ui.com/colors/custom?accent-dark=EA722A&accent-light=EA722A&gray-light=877F7A&gray-dark=877F7A)).
 
 ### Primary
-- **Terracotta** (`#EA722A`, resolves to Radix's `orange` scale): the life-changing tag's solid fill, primary buttons, the theme toggle's active state. Spent on <=10% of any given view - its rarity is what makes the life-changing tag feel special.
+- **Terracotta** (`#EA722A`, resolves to Radix's `orange` scale): primary buttons, the logo, the theme toggle's active state. Spent on <=10% of any given view - its rarity is what makes the life-changing tag feel special.
+- **Deep terracotta** (`#c04e00`): the life-changing tag's solid card fill only. A deeper shade than the accent so white text clears WCAG AA at any size (4.8:1), where the accent was 3.03:1 (AA-large only) and forced life-changing text to bold + a size floor. Same warm family, one step down.
 
 ### Neutral
 - **Warm Gray-Brown** (`#877F7A`): text, borders, card backgrounds, the cream/off-white base. Deliberately warm-toned, not a cool/neutral gray - this is what keeps the whole board feeling like paper rather than plastic.
@@ -61,7 +62,7 @@ Soft and shallow, not layered or dramatic. Cards rest with a very light ambient 
 
 ### Shadow Vocabulary
 - **Card rest**: a barely-there ambient shadow - presence without weight.
-- **Card hover/lift**: shadow grows one step + slight upward transform, on the whole card (desktop only) - pairs with revealing the edit icon.
+- **Card hover/lift**: shadow grows one step + slight upward transform, on the whole card (desktop only) - the affordance that the whole card is clickable (click opens the editor) and draggable (drag reorders).
 
 ### Named Rules
 **The No-Snap Rule.** Every shadow, color, and transform change animates 150-200ms ease-out. No instant state changes anywhere in the UI.
@@ -73,7 +74,7 @@ All UI icons come from **Phosphor** (`@phosphor-icons/react`), regular weight - 
 
 ### Buttons / Toggles
 - **Shape:** generous corner radius, matching the cards
-- **Primary (life-changing toggle, Add/Save):** fills solid terracotta when active/pressed
+- **Primary (life-changing toggle, Add):** fills solid terracotta when active/pressed
 - **Hover / Focus:** use Radix's own interactive step system - steps 3-5 for component background rest/hover/active, 6-8 for borders, 9-10 for solid fills, 11-12 for text. Hover = one step up, active = one more. Focus-visible gets a visible ring, never removed.
 - **Disabled:** reduced opacity + `cursor: not-allowed`, visually inert
 
@@ -82,10 +83,10 @@ All UI icons come from **Phosphor** (`@phosphor-icons/react`), regular weight - 
 - **Background:** warm off-white by default; solid terracotta fill when tagged life-changing
 - **Shadow Strategy:** see Elevation - ambient at rest, lift on hover
 - **Height:** auto by content, bounded (min 0.3x card width, max 1.5x card width)
-- **Hover (desktop only):** lift + reveal edit icon
+- **Hover (desktop only):** lift (click anywhere on the card opens the editor; no separate edit icon)
 
 ### Composer (signature component)
-The bottom-center floating input pill (Bento/Portrait/Pi-inspired) that expands on focus into a font-size dropdown, layout switcher, life-changing toggle, and image attach - the single place all card editing happens. No modal, no Cancel button; clicking outside collapses it back to a pill, draft preserved.
+The bottom-center floating input pill (Bento/Portrait/Pi-inspired) that expands on focus into a font-size dropdown, layout switcher, life-changing toggle, and image attach - the single place all card editing happens. All controls fully rounded (pill). No modal, no Cancel button; clicking outside collapses it back to a pill. New cards commit with an Add button (draft preserved on collapse); editing an existing card writes live on every change, so the edit state has Delete but no Save.
 
 ### Navigation
 Minimal header only: logo + wordmark left, theme toggle + overflow menu (export/import) right. No side nav, no tabs - the composer and the board are the whole product.

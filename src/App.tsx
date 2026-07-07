@@ -39,10 +39,25 @@ export default function App() {
   const { cards, addCard, updateCard, deleteCard, moveCard, replaceAll, lastAddedId } =
     useCards(onSaveIssue);
 
-  const setDraft = useCallback((next: Draft) => {
-    setDraftState(next);
-    saveDraft(next);
-  }, []);
+  const setDraft = useCallback(
+    (next: Draft) => {
+      setDraftState(next);
+      if (next.editingId) {
+        // Editing writes straight to the card so the board updates live.
+        updateCard(next.editingId, {
+          text: next.text,
+          image: next.image,
+          layout: next.layout,
+          fontSize: next.fontSize,
+          lifeChanging: next.lifeChanging,
+        });
+      } else {
+        // Only a new-card draft is worth persisting - an edit already lives on the card.
+        saveDraft(next);
+      }
+    },
+    [updateCard],
+  );
 
   const openComposerForNew = useCallback(() => {
     setComposerOpen(true);
@@ -52,13 +67,9 @@ export default function App() {
     (id: string) => {
       const card = cards.find((c) => c.id === id);
       if (!card) return;
-      // Editing reuses the composer, pre-filled. An unsaved new-card draft is
-      // not thrown away silently - it stays in localStorage under the same key
-      // only if the user had one; warn instead of clobbering.
-      if (draft.text.trim() && !draft.editingId && draft.text !== card.text) {
-        showToast('Your unsaved draft was kept - finish the edit, then reopen the composer.');
-      }
-      setDraft({
+      // Load the card into the composer without persisting it as a draft; any
+      // in-progress new-card draft stays safe in localStorage and returns on close.
+      setDraftState({
         text: card.text,
         image: card.image,
         layout: card.layout,
@@ -68,35 +79,48 @@ export default function App() {
       });
       setComposerOpen(true);
     },
-    [cards, draft, setDraft, showToast],
+    [cards],
   );
 
-  const handleSave = useCallback(() => {
+  // New cards commit on Add; edits are already saved live, so this only handles new.
+  const handleAdd = useCallback(() => {
     const text = draft.text.trim();
     if (!text) return;
-    const payload = {
+    addCard({
       text,
       image: draft.image,
       layout: draft.layout,
       fontSize: draft.fontSize,
       lifeChanging: draft.lifeChanging,
-    };
-    if (draft.editingId) {
-      updateCard(draft.editingId, payload);
-    } else {
-      addCard(payload);
-    }
-    setDraft(EMPTY_DRAFT);
+    });
+    setDraftState(EMPTY_DRAFT);
+    saveDraft(null);
     setComposerOpen(false);
-  }, [draft, addCard, updateCard, setDraft]);
+  }, [draft, addCard]);
+
+  const handleComposerOpenChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        setComposerOpen(true);
+        return;
+      }
+      setComposerOpen(false);
+      if (draft.editingId) {
+        // A live edit left empty has no card to keep; otherwise it's already saved.
+        if (!draft.text.trim()) deleteCard(draft.editingId);
+        setDraftState(loadDraft() ?? EMPTY_DRAFT);
+      }
+    },
+    [draft, deleteCard],
+  );
 
   const handleDelete = useCallback(
     (id: string) => {
       deleteCard(id);
-      setDraft(EMPTY_DRAFT);
+      setDraftState(loadDraft() ?? EMPTY_DRAFT);
       setComposerOpen(false);
     },
-    [deleteCard, setDraft],
+    [deleteCard],
   );
 
   const handleImportFile = useCallback(
@@ -146,8 +170,8 @@ export default function App() {
         draft={draft}
         onDraftChange={setDraft}
         expanded={composerOpen}
-        onExpandedChange={setComposerOpen}
-        onSave={handleSave}
+        onExpandedChange={handleComposerOpenChange}
+        onSave={handleAdd}
         onDelete={handleDelete}
         onImageError={(msg) => showToast(msg, 'error')}
       />

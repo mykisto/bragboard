@@ -53,13 +53,17 @@
   --border-ui-strong: var(--gray-7);
   --text-primary: var(--gray-12);
   --text-secondary: var(--gray-11);
-  --text-placeholder: var(--gray-10);
+  --text-placeholder: var(--gray-11); /* gray-11, not gray-10: the pill prompt + textarea placeholder must clear 4.5:1 */
 
-  /* Life-changing card: Radix solid step + its official contrast color.
-   * #fff on #ea722a is 3.03:1 - passes WCAG AA for large text only, which is
-   * why .card--life text is bold with a floor of 19px. Stricter option: switch
-   * --life-bg to #c04e00 (4.8:1 with white) at the cost of the exact brand hex. */
-  --life-bg: var(--accent-9);
+  /* Warm interactive wash for icon buttons - a translucent gray-brown that lets
+   * the cream header show through, instead of an opaque cool gray sitting on top. */
+  --control-hover: #877f7a24;
+  --control-active: #877f7a3d;
+
+  /* Life-changing card: a deeper terracotta than the accent so white text clears
+   * WCAG AA at any size (#c04e00 on #fff = 4.8:1), which frees the card text to
+   * honor its chosen size/weight rather than being forced bold at a size floor. */
+  --life-bg: #c04e00;
   --life-text: var(--accent-contrast);
 
   /* Elevation - soft, warm, barely-there at rest */
@@ -148,7 +152,11 @@
   --border-ui-strong: var(--gray-7);
   --text-primary: var(--gray-12);
   --text-secondary: var(--gray-11);
-  --text-placeholder: var(--gray-9);
+  --text-placeholder: var(--gray-11); /* clears 4.5:1 on the dark card surface */
+
+  /* Warm off-white wash in dark, same idea as light: translucent, not opaque. */
+  --control-hover: #f0edec1a;
+  --control-active: #f0edec2e;
 
   --danger: #ff8a80;
 }

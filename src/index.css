@@ -53,8 +53,9 @@ button:disabled {
 
 :focus-visible {
   outline: 2px solid var(--accent-9);
-  outline-offset: 2px;
-  border-radius: var(--radius-control);
+  /* The ring follows each element's own corner radius; the offset makes it sit
+   * ~3px outside, so a rounded card gets a rounded ring, not a forced 10px one. */
+  outline-offset: 3px;
 }
 
 ::selection {

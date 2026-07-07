@@ -66,7 +66,7 @@
   place-items: center;
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-pill);
   color: var(--text-secondary);
   transition:
     background-color var(--dur-fast) var(--ease-out),
@@ -74,12 +74,12 @@
 }
 
 .icon-button:hover {
-  background: var(--gray-4);
+  background: var(--control-hover);
   color: var(--text-primary);
 }
 
 .icon-button:active {
-  background: var(--gray-5);
+  background: var(--control-active);
 }
 
 .icon-button[aria-pressed='true'] {
@@ -147,6 +147,8 @@
   left: 0;
   cursor: grab;
   touch-action: manipulation;
+  /* Matches the card's own corner so the focus-visible ring rounds to the card. */
+  border-radius: var(--radius-card);
 }
 
 .card-slot--ready {
@@ -242,80 +244,15 @@
   min-height: 96px;
 }
 
-/* Life-changing: the one place the accent fills a whole surface.
- * White on #ea722a passes WCAG AA only as large text, so the text is bold
- * with a floor of the M preset (~19px). */
+/* Life-changing: the one place the accent fills a whole surface. The deeper
+ * terracotta (--life-bg #c04e00) clears WCAG AA with white at any size, so the
+ * text just switches color and keeps its chosen size/weight like any card. */
 .card--life {
   background: var(--life-bg);
 }
 
 .card--life .card-text {
   color: var(--life-text);
-  font-weight: 700;
-  font-size: max(var(--card-text-m), 1em);
-}
-
-.card--life .card-text--l {
-  font-size: var(--card-text-l);
-}
-.card--life .card-text--xl {
-  font-size: var(--card-text-xl);
-}
-
-.card-edit {
-  position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-control);
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-ui);
-  box-shadow: var(--shadow-rest);
-  opacity: 0;
-  transform: translateY(2px);
-  transition:
-    opacity var(--dur-fast) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out),
-    background-color var(--dur-fast) var(--ease-out);
-}
-
-.card--life .card-edit {
-  background: color-mix(in srgb, var(--life-bg) 70%, var(--accent-contrast) 30%);
-  border-color: transparent;
-  color: var(--accent-contrast);
-}
-
-@media (hover: hover) {
-  .card-slot:hover .card-edit,
-  .card-edit:focus-visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .card-edit:hover {
-    background: var(--gray-3);
-    color: var(--text-primary);
-  }
-  .card--life .card-edit:hover {
-    background: color-mix(in srgb, var(--life-bg) 55%, var(--accent-contrast) 45%);
-    color: var(--accent-contrast);
-  }
-}
-
-/* Touch devices: the edit button is always quietly present - tap targets need no hover */
-@media (hover: none) {
-  .card-edit {
-    opacity: 1;
-    transform: none;
-  }
-  .card-edit::before {
-    content: '';
-    position: absolute;
-    inset: -8px; /* 32px visual, 48px touch target */
-  }
 }
 
 /* ---------- Empty state ---------- */
@@ -513,11 +450,17 @@
   gap: var(--space-2);
 }
 
+.composer__size {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .composer__size select {
   appearance: none;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-6) var(--space-2) var(--space-3);
   border: 1px solid var(--border-ui);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-pill);
   background: var(--bg-composer);
   color: var(--text-secondary);
   font-family: var(--font-sans);
@@ -533,12 +476,19 @@
   background: var(--gray-2);
 }
 
+.composer__size-caret {
+  position: absolute;
+  right: var(--space-3);
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
 .composer__layout {
   display: flex;
   gap: var(--space-1);
   padding: 2px;
   border: 1px solid var(--border-ui);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-pill);
 }
 
 .composer__life {
@@ -579,7 +529,7 @@
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-pill);
   color: var(--text-secondary);
   font-size: 0.875rem;
   transition:

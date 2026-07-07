@@ -1,6 +1,5 @@
 import { memo, useCallback, useEffect, useRef } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
-import { PencilSimple } from '@phosphor-icons/react';
 import type { AchievementCard as CardData } from '../types';
 
 interface Props {
@@ -32,8 +31,12 @@ export const AchievementCard = memo(function AchievementCard({
   onKeyMove,
 }: Props) {
   const innerRef = useRef<HTMLDivElement>(null);
+  const pointerDown = useRef<{ x: number; y: number } | null>(null);
 
-  const { setNodeRef: setDragRef, attributes, listeners } = useDraggable({ id: card.id });
+  // We take `listeners` (pointer drag) but not `attributes`: dnd-kit's attributes
+  // announce the card as a draggable that responds to Space/Enter, which we don't
+  // wire up. We set our own a11y below - Enter/Space edits, Ctrl+Arrow reorders.
+  const { setNodeRef: setDragRef, listeners } = useDraggable({ id: card.id });
   const { setNodeRef: setDropRef } = useDroppable({ id: card.id });
 
   const setRefs = useCallback(
@@ -56,11 +59,25 @@ export const AchievementCard = memo(function AchievementCard({
   }, [card.id, onHeight, width]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Keyboard reorder: Cmd/Ctrl + arrows moves the card in the ordered list.
+    // Ctrl/Cmd + arrows moves the card in the ordered list.
     if ((e.metaKey || e.ctrlKey) && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
       e.preventDefault();
       onKeyMove(card.id, e.key === 'ArrowUp' ? -1 : 1);
+      return;
     }
+    // Enter/Space opens the editor - the card's primary action.
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onEdit(card.id);
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    // A real drag moves past dnd-kit's 8px threshold; anything under that is a
+    // click that should open the editor, not a dropped reorder.
+    const start = pointerDown.current;
+    if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 8) return;
+    onEdit(card.id);
   };
 
   const tx = x + (dragDelta?.x ?? 0);
@@ -84,11 +101,17 @@ export const AchievementCard = memo(function AchievementCard({
         width,
         transform: `translate(${tx}px, ${ty}px)`,
       }}
-      {...attributes}
       {...listeners}
+      role="button"
+      tabIndex={0}
+      aria-label={card.text}
+      aria-keyshortcuts="Control+ArrowUp Control+ArrowDown"
+      title="Click to edit · drag to reorder"
+      onPointerDownCapture={(e) => {
+        pointerDown.current = { x: e.clientX, y: e.clientY };
+      }}
+      onClick={handleClick}
       onKeyDown={handleKeyDown}
-      aria-roledescription="draggable card"
-      aria-describedby={undefined}
     >
       <article
         ref={innerRef}
@@ -108,19 +131,6 @@ export const AchievementCard = memo(function AchievementCard({
             )}
           </>
         )}
-        <button
-          type="button"
-          className="card-edit"
-          aria-label="Edit this card"
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit(card.id);
-          }}
-          // Draggable listeners live on the wrapper; keep the button out of drag starts.
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <PencilSimple size={16} weight="regular" aria-hidden />
-        </button>
       </article>
     </div>
   );

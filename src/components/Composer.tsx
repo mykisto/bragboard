@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  CaretDown,
   ImageSquare,
   Rows,
   Columns,
@@ -93,9 +94,11 @@ export function Composer({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && draft.text.trim()) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault();
-      onSave();
+      // Editing is already live; Cmd+Enter just closes. New cards commit on Add.
+      if (editing) onExpandedChange(false);
+      else if (draft.text.trim()) onSave();
     }
   };
 
@@ -171,6 +174,7 @@ export function Composer({
                   </option>
                 ))}
               </select>
+              <CaretDown size={14} className="composer__size-caret" aria-hidden />
             </label>
 
             {draft.image && (
@@ -243,14 +247,18 @@ export function Composer({
               aria-hidden
             />
 
-            <button
-              type="button"
-              className="composer__save"
-              disabled={!draft.text.trim()}
-              onClick={onSave}
-            >
-              {editing ? 'Save' : 'Add'}
-            </button>
+            {/* Editing writes to the card live, so there's no Save step - only
+              * new cards need an explicit Add to come into existence. */}
+            {!editing && (
+              <button
+                type="button"
+                className="composer__save"
+                disabled={!draft.text.trim()}
+                onClick={onSave}
+              >
+                Add
+              </button>
+            )}
           </div>
         </div>
       </div>
