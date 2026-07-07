@@ -121,13 +121,13 @@ export const AchievementCard = memo(function AchievementCard({
         {card.image && card.layout === 'split' ? (
           <div className="card-split">
             <p className={`card-text ${sizeClass}`}>{card.text}</p>
-            <img src={card.image} alt="" loading="lazy" className="card-image card-image--split" />
+            <img src={card.image} alt="" loading="lazy" decoding="async" className="card-image card-image--split" />
           </div>
         ) : (
           <>
             <p className={`card-text ${sizeClass}`}>{card.text}</p>
             {card.image && (
-              <img src={card.image} alt="" loading="lazy" className="card-image card-image--stack" />
+              <img src={card.image} alt="" loading="lazy" decoding="async" className="card-image card-image--stack" />
             )}
           </>
         )}

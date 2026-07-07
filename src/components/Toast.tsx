@@ -13,7 +13,9 @@ interface Props {
 
 export function Toast({ toast, onDismiss }: Props) {
   useEffect(() => {
-    if (!toast) return;
+    // Errors are usually actionable (storage full - export first), so they stay
+    // until dismissed. Info toasts auto-clear.
+    if (!toast || toast.tone === 'error') return;
     const t = setTimeout(onDismiss, 5000);
     return () => clearTimeout(t);
   }, [toast, onDismiss]);

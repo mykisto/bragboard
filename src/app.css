@@ -36,6 +36,7 @@
 }
 
 .header__wordmark {
+  margin: 0; /* it's the page <h1>; drop the UA heading margin */
   font-family: var(--font-serif);
   font-size: 1.15rem;
   font-weight: 700;
@@ -80,6 +81,15 @@
 
 .icon-button:active {
   background: var(--control-active);
+}
+
+/* Touch pointers get the 44px comfortable hit area; mouse users keep the
+ * tighter 36px chrome. The icon glyph stays centered at its own size. */
+@media (pointer: coarse) {
+  .icon-button {
+    width: 44px;
+    height: 44px;
+  }
 }
 
 .icon-button[aria-pressed='true'] {
@@ -299,8 +309,9 @@
   border-radius: var(--radius-pill);
   background: var(--accent-9);
   color: var(--accent-contrast);
-  font-weight: 500;
-  font-size: 1rem;
+  /* Bold 19px: white-on-accent clears AA-large 3:1 as large text. */
+  font-weight: 700;
+  font-size: 1.1875rem;
   box-shadow: var(--shadow-rest);
   transition:
     background-color var(--dur-fast) var(--ease-out),
@@ -555,8 +566,10 @@
   border-radius: var(--radius-pill);
   background: var(--accent-9);
   color: var(--accent-contrast);
-  font-weight: 500;
-  font-size: 0.9375rem;
+  /* Bold 19px makes white-on-accent (3.22:1) qualify as WCAG large text, which
+   * clears the AA-large 3:1 bar - same treatment as the life-changing card. */
+  font-weight: 700;
+  font-size: 1.1875rem;
   transition:
     background-color var(--dur-fast) var(--ease-out),
     transform var(--dur-fast) var(--ease-out);

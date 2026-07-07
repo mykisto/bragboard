@@ -5,7 +5,7 @@ interface Props {
 export function EmptyState({ onStart }: Props) {
   return (
     <div className="empty-state">
-      <h1 className="empty-state__headline">Start your record.</h1>
+      <h2 className="empty-state__headline">Start your record.</h2>
       <p className="empty-state__line">
         The days you doubt yourself are the days this board is for. Put the first thing
         you're quietly proud of where you can see it.

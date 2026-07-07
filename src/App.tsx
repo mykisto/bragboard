@@ -20,6 +20,8 @@ export default function App() {
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [draft, setDraftState] = useState<Draft>(() => loadDraft() ?? EMPTY_DRAFT);
   const [composerOpen, setComposerOpen] = useState(false);
+  // Polite screen-reader announcement for silent board mutations (add/delete).
+  const [srMessage, setSrMessage] = useState('');
 
   const showToast = useCallback((text: string, tone: 'info' | 'error' = 'info') => {
     setToast({ id: ++toastId, text, tone });
@@ -96,6 +98,7 @@ export default function App() {
     setDraftState(EMPTY_DRAFT);
     saveDraft(null);
     setComposerOpen(false);
+    setSrMessage('Card added to the top of your board.');
   }, [draft, addCard]);
 
   const handleComposerOpenChange = useCallback(
@@ -119,6 +122,7 @@ export default function App() {
       deleteCard(id);
       setDraftState(loadDraft() ?? EMPTY_DRAFT);
       setComposerOpen(false);
+      setSrMessage('Card deleted.');
     },
     [deleteCard],
   );
@@ -129,6 +133,16 @@ export default function App() {
       reader.onload = () => {
         const result = parseImport(String(reader.result));
         if (result.ok) {
+          // Import replaces the whole board; guard the existing cards from a
+          // silent overwrite.
+          if (
+            cards.length > 0 &&
+            !window.confirm(
+              `Importing replaces all ${cards.length} card${cards.length === 1 ? '' : 's'} on your board. Export first if you want a backup. Continue?`,
+            )
+          ) {
+            return;
+          }
           replaceAll(result.cards);
           showToast(`Imported ${result.cards.length} card${result.cards.length === 1 ? '' : 's'}.`);
         } else {
@@ -138,7 +152,7 @@ export default function App() {
       reader.onerror = () => showToast('Could not read that file.', 'error');
       reader.readAsText(file);
     },
-    [replaceAll, showToast],
+    [cards, replaceAll, showToast],
   );
 
   const dismissToast = useCallback(() => setToast(null), []);
@@ -177,6 +191,10 @@ export default function App() {
       />
 
       <Toast toast={toast} onDismiss={dismissToast} />
+
+      <div className="visually-hidden" role="status" aria-live="polite">
+        {srMessage}
+      </div>
     </>
   );
 }

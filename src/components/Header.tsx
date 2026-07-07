@@ -36,7 +36,7 @@ export function Header({ theme, onToggleTheme, onExport, onImportFile }: Props) 
         <span className="header__logo" aria-hidden>
           B
         </span>
-        <span className="header__wordmark">BragBoard</span>
+        <h1 className="header__wordmark">BragBoard</h1>
       </div>
 
       <div className="header__actions">

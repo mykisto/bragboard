@@ -147,7 +147,7 @@ export function Composer({
 
         {draft.image && (
           <div className="composer__preview">
-            <img src={draft.image} alt="Attached image preview" />
+            <img src={draft.image} alt="Attached image preview" decoding="async" />
             <button
               type="button"
               className="composer__preview-remove"
