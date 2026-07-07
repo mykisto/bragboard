@@ -62,11 +62,19 @@
 
 /* ---------- Icon buttons & menu ---------- */
 
+/* Touch pointers bump every control to the comfortable 44px (lg) hit target at
+ * once, so control rows stay aligned across pointer types. */
+@media (pointer: coarse) {
+  :root {
+    --control-h: var(--size-element-lg);
+  }
+}
+
 .icon-button {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: var(--control-h);
+  height: var(--control-h);
   border-radius: var(--radius-pill);
   color: var(--text-secondary);
   transition:
@@ -81,15 +89,6 @@
 
 .icon-button:active {
   background: var(--control-active);
-}
-
-/* Touch pointers get the 44px comfortable hit area; mouse users keep the
- * tighter 36px chrome. The icon glyph stays centered at its own size. */
-@media (pointer: coarse) {
-  .icon-button {
-    width: 44px;
-    height: 44px;
-  }
 }
 
 .icon-button[aria-pressed='true'] {
@@ -476,7 +475,8 @@
 
 .composer__size select {
   appearance: none;
-  padding: var(--space-2) var(--space-6) var(--space-2) var(--space-3);
+  height: var(--control-h);
+  padding: 0 var(--space-6) 0 var(--space-3);
   border: 1px solid var(--border-ui);
   border-radius: var(--radius-pill);
   background: var(--bg-composer);
@@ -496,24 +496,36 @@
 
 .composer__size-caret {
   position: absolute;
+  top: 50%;
   right: var(--space-3);
+  transform: translateY(-50%);
   color: var(--text-secondary);
   pointer-events: none;
 }
 
 .composer__layout {
-  display: flex;
+  display: inline-flex;
+  align-items: center;
   gap: var(--space-1);
-  padding: 2px;
+  height: var(--control-h);
+  padding-inline: var(--space-1);
   border: 1px solid var(--border-ui);
   border-radius: var(--radius-pill);
 }
 
+/* Segments sit inside the switcher pill, so they're inset from --control-h
+ * rather than taking it themselves - the wrapper is what aligns to the row. */
+.composer__layout .icon-button {
+  width: calc(var(--control-h) - var(--space-2));
+  height: calc(var(--control-h) - var(--space-2));
+}
+
 .composer__life {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
+  height: var(--control-h);
+  padding-inline: var(--space-3);
   border-radius: var(--radius-pill);
   border: 1px solid var(--border-ui);
   color: var(--text-secondary);
@@ -543,10 +555,11 @@
 }
 
 .composer__delete {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
+  height: var(--control-h);
+  padding-inline: var(--space-3);
   border-radius: var(--radius-pill);
   color: var(--text-secondary);
   font-size: 0.875rem;
@@ -562,7 +575,11 @@
 }
 
 .composer__save {
-  padding: var(--space-2) var(--space-5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--control-h);
+  padding-inline: var(--space-5);
   border-radius: var(--radius-pill);
   background: var(--accent-9);
   color: var(--accent-contrast);

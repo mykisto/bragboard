@@ -97,6 +97,16 @@
   --space-6: 36px;
   --space-7: 42px;
 
+  /* Control sizing - Astryx/Matcha element-height scale (sm/md/lg). Every
+   * button, select, and toggle sits on one of these so any control row lines up
+   * to a single height. Matcha's default control size is md. --control-h is the
+   * one height the app reaches for; it bumps to lg on touch (see app.css) so
+   * fingers get the 44px hit target without breaking the row's alignment. */
+  --size-element-sm: 36px;
+  --size-element-md: 40px;
+  --size-element-lg: 44px;
+  --control-h: var(--size-element-md);
+
   /* Motion - Matcha durations (fast 125 / medium 300), ease-out quart */
   --ease-out: cubic-bezier(0.25, 1, 0.5, 1); /* quart */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
