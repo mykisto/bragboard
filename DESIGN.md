@@ -32,6 +32,10 @@ Custom Radix Colors palette (light + dark generated as a matched pair from the s
 ### Neutral
 - **Warm Gray-Brown** (`#877F7A`): text, borders, card backgrounds, the cream/off-white base. Deliberately warm-toned, not a cool/neutral gray - this is what keeps the whole board feeling like paper rather than plastic.
 
+### Utility additions (outside the two Radix scales)
+- **Danger** (`#b3261e` light / `#ff8a80` dark): the quiet destructive action (Delete in the composer) and error toasts (`#6e2a1c` bg / `#ffe9e2` text). Deliberate addition: the custom palette has no red, and terracotta cannot double as danger - here the accent means celebration. Kept warm-toned.
+- **Accent contrast** (`#fff`): Radix's official contrast color for solid accent fills.
+
 ### Named Rules
 **The Rare Accent Rule.** Terracotta appears only on the life-changing tag and primary actions. If more than one card per screen is solid terracotta, the tag has lost its meaning.
 **The Warm-Twin Rule.** Dark mode is not an inversion. Every dark-mode color is generated from the same accent/gray source as light mode, so shadows, the life-changing fill, and the card surface all stay warm - re-check these three specifically whenever dark mode drifts toward looking techy.

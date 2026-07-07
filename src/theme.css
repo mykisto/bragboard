@@ -1,0 +1,154 @@
+/*
+ * Bragboard theme - custom Radix Colors palette.
+ * Source of truth: radix-ui.com/colors/custom, accent #EA722A, gray #877F7A.
+ * Values generated with Radix's own generator (see palette-reference.json);
+ * light and dark are a matched pair from the same two source colors.
+ *
+ * Step semantics (Radix doctrine):
+ *   1-2 backgrounds - 3-5 interactive component bg (rest/hover/active)
+ *   6-8 borders - 9-10 solid fills - 11-12 text
+ */
+
+:root {
+  /* Accent - terracotta */
+  --accent-1: #fefcfb;
+  --accent-2: #fff6f0;
+  --accent-3: #ffebdf;
+  --accent-4: #ffd8be;
+  --accent-5: #ffcaa9;
+  --accent-6: #ffbd99;
+  --accent-7: #f5ac88;
+  --accent-8: #e9956a;
+  --accent-9: #ea722a;
+  --accent-10: #de6512;
+  --accent-11: #c85700;
+  --accent-12: #54301d;
+  --accent-contrast: #fff;
+
+  /* Gray - warm gray-brown */
+  --gray-1: #fefdfc;
+  --gray-2: #faf9f8;
+  --gray-3: #f2f0ee;
+  --gray-4: #ebe8e6;
+  --gray-5: #e4e0de;
+  --gray-6: #ddd8d5;
+  --gray-7: #d3cdca;
+  --gray-8: #c1b9b5;
+  --gray-9: #938b85;
+  --gray-10: #88807b;
+  --gray-11: #68615d;
+  --gray-12: #241f1c;
+
+  /* Warm translucent grays for shadows (generated alpha scale, steps 3/5/8) */
+  --shadow-tint-soft: #3c1e0011;
+  --shadow-tint-mid: #2f100021;
+  --shadow-tint-strong: #2a0e014a;
+
+  /* Semantic surfaces */
+  --bg-board: var(--accent-2); /* the warm cream base - the room itself */
+  --bg-card: var(--gray-1);
+  --bg-chrome: #fff6f0d9; /* header wash over the board */
+  --bg-composer: var(--gray-1);
+  --border-ui: var(--gray-6);
+  --border-ui-strong: var(--gray-7);
+  --text-primary: var(--gray-12);
+  --text-secondary: var(--gray-11);
+  --text-placeholder: var(--gray-10);
+
+  /* Life-changing card: Radix solid step + its official contrast color.
+   * #fff on #ea722a is 3.03:1 - passes WCAG AA for large text only, which is
+   * why .card--life text is bold with a floor of 19px. Stricter option: switch
+   * --life-bg to #c04e00 (4.8:1 with white) at the cost of the exact brand hex. */
+  --life-bg: var(--accent-9);
+  --life-text: var(--accent-contrast);
+
+  /* Elevation - soft, warm, barely-there at rest */
+  --shadow-rest: 0 1px 2px var(--shadow-tint-soft), 0 2px 8px var(--shadow-tint-soft);
+  --shadow-lift: 0 2px 4px var(--shadow-tint-soft), 0 10px 24px var(--shadow-tint-mid);
+  --shadow-drag: 0 4px 8px var(--shadow-tint-mid), 0 18px 40px var(--shadow-tint-strong);
+  --shadow-composer: 0 2px 6px var(--shadow-tint-soft), 0 12px 32px var(--shadow-tint-mid);
+
+  /* Radii */
+  --radius-card: 18px;
+  --radius-control: 10px;
+  --radius-pill: 999px;
+
+  /* Spacing scale (4pt base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.25, 1, 0.5, 1); /* quart */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-repack: 320ms;
+
+  /* Destructive + error surfaces - deliberate additions: the Radix custom
+   * palette has no red, and terracotta cannot double as danger (accent =
+   * celebration here). Kept warm-toned to stay in the room. */
+  --danger: #b3261e;
+  --toast-error-bg: #6e2a1c;
+  --toast-error-text: #ffe9e2;
+
+  /* Type */
+  --font-serif: 'Bona Nova', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
+
+  /* Card text presets - user-chosen per card, never auto-fit */
+  --card-text-s: 1rem;
+  --card-text-m: 1.1875rem;
+  --card-text-l: 1.5rem;
+  --card-text-xl: 1.875rem;
+}
+
+[data-theme='dark'] {
+  --accent-1: #15100d;
+  --accent-2: #1e1511;
+  --accent-3: #331d12;
+  --accent-4: #471f08;
+  --accent-5: #55280e;
+  --accent-6: #65361d;
+  --accent-7: #7c462a;
+  --accent-8: #9f5a36;
+  --accent-9: #ea722a;
+  --accent-10: #dd6618;
+  --accent-11: #ff9e68;
+  --accent-12: #ffddcc;
+
+  --gray-1: #121110;
+  --gray-2: #1a1918;
+  --gray-3: #242221;
+  --gray-4: #2b2928;
+  --gray-5: #33302f;
+  --gray-6: #3d3937;
+  --gray-7: #4c4744;
+  --gray-8: #655e5a;
+  --gray-9: #746c67;
+  --gray-10: #817a75;
+  --gray-11: #bab2ae;
+  --gray-12: #f0edec;
+
+  /* Dark shadows stay soft; lift is also conveyed by a lighter surface step */
+  --shadow-tint-soft: #00000030;
+  --shadow-tint-mid: #00000052;
+  --shadow-tint-strong: #00000073;
+
+  /* The same room at night - warm near-black, never techy #111 flat */
+  --bg-board: var(--accent-1);
+  --bg-card: var(--gray-3);
+  --bg-chrome: #15100dd9;
+  --bg-composer: var(--gray-3);
+  --border-ui: var(--gray-6);
+  --border-ui-strong: var(--gray-7);
+  --text-primary: var(--gray-12);
+  --text-secondary: var(--gray-11);
+  --text-placeholder: var(--gray-9);
+
+  --danger: #ff8a80;
+}
