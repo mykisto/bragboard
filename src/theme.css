@@ -1,16 +1,21 @@
 /*
- * Bragboard theme - custom Radix Colors palette.
- * Source of truth: radix-ui.com/colors/custom, accent #EA722A, gray #877F7A.
- * Values generated with Radix's own generator (see palette-reference.json);
- * light and dark are a matched pair from the same two source colors.
+ * Bragboard theme - Pumpkin (from the Astryx design system).
  *
- * Step semantics (Radix doctrine):
- *   1-2 backgrounds - 3-5 interactive component bg (rest/hover/active)
- *   6-8 borders - 9-10 solid fills - 11-12 text
+ * Pumpkin = Matcha's shape wearing Hearth's identity: terracotta on cream paper,
+ * Bona Nova headings over a Geist body, on Matcha's compact 6px spacing, big
+ * page-radius cards, pill controls, and Matcha elevation/motion. Values below are
+ * lifted from the compiled theme (`astryx theme build themes/pumpkin.ts`); they
+ * feed Bragboard's own semantic token names, so no component markup changes.
+ *
+ * Color identity (Hearth): accent #e86a26, cream body #fff6f0, warm gray-brown
+ * text ramp. The interactive step ramp (accent-3..11 / gray-2..12) stays the
+ * Radix-generated terracotta - same family, gives Pumpkin's flat color tokens the
+ * rest/hover/active steps the components need:
+ *   3-5 component bg (rest/hover/active) - 6-8 borders - 9-10 solid fills - 11-12 text
  */
 
 :root {
-  /* Accent - terracotta */
+  /* Accent - terracotta. accent-9 is Pumpkin's brand accent (#e86a26). */
   --accent-1: #fefcfb;
   --accent-2: #fff6f0;
   --accent-3: #ffebdf;
@@ -19,9 +24,9 @@
   --accent-6: #ffbd99;
   --accent-7: #f5ac88;
   --accent-8: #e9956a;
-  --accent-9: #ea722a;
+  --accent-9: #e86a26;
   --accent-10: #de6512;
-  --accent-11: #c85700;
+  --accent-11: #c85410;
   --accent-12: #54301d;
   --accent-contrast: #fff;
 
@@ -39,68 +44,74 @@
   --gray-11: #68615d;
   --gray-12: #241f1c;
 
-  /* Warm translucent grays for shadows (generated alpha scale, steps 3/5/8) */
-  --shadow-tint-soft: #3c1e0011;
-  --shadow-tint-mid: #2f100021;
-  --shadow-tint-strong: #2a0e014a;
-
-  /* Semantic surfaces */
-  --bg-board: var(--accent-2); /* the warm cream base - the room itself */
-  --bg-card: var(--gray-1);
+  /* Semantic surfaces - Pumpkin's flat color tokens */
+  --bg-board: var(--accent-2); /* #fff6f0 - the warm cream base, the room itself */
+  --bg-card: #fefdfc; /* Pumpkin --color-background-card */
   --bg-chrome: #fff6f0d9; /* header wash over the board */
-  --bg-composer: var(--gray-1);
-  --border-ui: var(--gray-6);
-  --border-ui-strong: var(--gray-7);
-  --text-primary: var(--gray-12);
-  --text-secondary: var(--gray-11);
-  --text-placeholder: var(--gray-11); /* gray-11, not gray-10: the pill prompt + textarea placeholder must clear 4.5:1 */
+  --bg-composer: #ffffff; /* Pumpkin --color-background-surface / popover */
+  --border-ui: #efe9e3; /* Pumpkin --color-border */
+  --border-ui-strong: #e2dbd4; /* Pumpkin --color-border-emphasized */
+  --text-primary: var(--gray-12); /* #241f1c */
+  --text-secondary: var(--gray-11); /* #68615d */
+  --text-placeholder: var(--gray-11); /* gray-11, not gray-10: prompt + placeholder must clear 4.5:1 */
 
   /* Warm interactive wash for icon buttons - a translucent gray-brown that lets
    * the cream header show through, instead of an opaque cool gray sitting on top. */
   --control-hover: #877f7a24;
   --control-active: #877f7a3d;
 
-  /* Life-changing card: a deeper terracotta than the accent so white text clears
-   * WCAG AA at any size (#c04e00 on #fff = 4.8:1), which frees the card text to
-   * honor its chosen size/weight rather than being forced bold at a size floor. */
-  --life-bg: #c04e00;
-  --life-text: var(--accent-contrast);
+  /* Life-changing card: filled with Pumpkin's accent (--color-accent /
+   * on-accent). White on #e86a26 is ~3.4:1 - a deliberate look-over-AA choice
+   * carried from Pumpkin, so life-changing text is forced bold + a 19px floor to
+   * hold the AA-large 3:1 bar (see .card--life .card-text in app.css). */
+  --life-bg: #e86a26;
+  --life-text: #ffffff;
 
-  /* Elevation - soft, warm, barely-there at rest */
-  --shadow-rest: 0 1px 2px var(--shadow-tint-soft), 0 2px 8px var(--shadow-tint-soft);
-  --shadow-lift: 0 2px 4px var(--shadow-tint-soft), 0 10px 24px var(--shadow-tint-mid);
-  --shadow-drag: 0 4px 8px var(--shadow-tint-mid), 0 18px 40px var(--shadow-tint-strong);
-  --shadow-composer: 0 2px 6px var(--shadow-tint-soft), 0 12px 32px var(--shadow-tint-mid);
+  /* Elevation - Matcha's shadow structure (offsets/blur/alpha) but a warm
+   * terracotta-brown tint (#3a1c08), never Matcha's olive. Dark side falls back
+   * to neutral black so elevation stays visible on the warm near-black surfaces. */
+  --shadow-rest: 0 2px 4px light-dark(#3a1c080d, #00000030),
+    0 4px 8px light-dark(#3a1c081a, #00000030);
+  --shadow-lift: 0 2px 4px light-dark(#3a1c080d, #00000030),
+    0 4px 12px light-dark(#3a1c081a, #00000052);
+  --shadow-drag: 0 4px 6px light-dark(#3a1c081a, #00000052),
+    0 12px 24px light-dark(#3a1c0826, #00000073);
+  --shadow-composer: 0 4px 6px light-dark(#3a1c081a, #00000052),
+    0 12px 24px light-dark(#3a1c0826, #00000073);
 
-  /* Radii */
-  --radius-card: 18px;
-  --radius-control: 10px;
+  /* Radii - Matcha's scale. Cards take the big page radius; controls are pills. */
+  --radius-inner: 6px;
+  --radius-element: 12px;
+  --radius-container: 18px;
+  --radius-page: 42px;
+  --radius-card: var(--radius-page); /* 42px - Matcha's signature big-radius card */
+  --radius-control: var(--radius-element); /* 12px */
   --radius-pill: 999px;
 
-  /* Spacing scale (4pt base) */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
+  /* Spacing - Matcha's 6px scale */
+  --space-1: 6px;
+  --space-2: 12px;
+  --space-3: 18px;
+  --space-4: 24px;
+  --space-5: 30px;
+  --space-6: 36px;
+  --space-7: 42px;
 
-  /* Motion */
+  /* Motion - Matcha durations (fast 125 / medium 300), ease-out quart */
   --ease-out: cubic-bezier(0.25, 1, 0.5, 1); /* quart */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --dur-fast: 150ms;
+  --dur-fast: 125ms;
   --dur-base: 200ms;
-  --dur-repack: 320ms;
+  --dur-repack: 300ms;
 
-  /* Destructive + error surfaces - deliberate additions: the Radix custom
-   * palette has no red, and terracotta cannot double as danger (accent =
-   * celebration here). Kept warm-toned to stay in the room. */
+  /* Destructive + error surfaces. --danger mirrors Pumpkin's --color-error; the
+   * toast surfaces are Bragboard's own warm-toned danger (Pumpkin ships no toast
+   * token, and terracotta cannot double as danger - accent = celebration here). */
   --danger: #b3261e;
   --toast-error-bg: #6e2a1c;
   --toast-error-text: #ffe9e2;
 
-  /* Type */
+  /* Type - Pumpkin's Hearth typography */
   --font-serif: 'Bona Nova', Georgia, 'Times New Roman', serif;
   --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
 
@@ -120,7 +131,7 @@
   --accent-6: #65361d;
   --accent-7: #7c462a;
   --accent-8: #9f5a36;
-  --accent-9: #ea722a;
+  --accent-9: #ec7a37;
   --accent-10: #dd6618;
   --accent-11: #ff9e68;
   --accent-12: #ffddcc;
@@ -138,18 +149,13 @@
   --gray-11: #bab2ae;
   --gray-12: #f0edec;
 
-  /* Dark shadows stay soft; lift is also conveyed by a lighter surface step */
-  --shadow-tint-soft: #00000030;
-  --shadow-tint-mid: #00000052;
-  --shadow-tint-strong: #00000073;
-
-  /* The same room at night - warm near-black, never techy #111 flat */
-  --bg-board: var(--accent-1);
-  --bg-card: var(--gray-3);
+  /* The same room at night - Pumpkin's warm near-black surfaces */
+  --bg-board: var(--accent-1); /* #15100d */
+  --bg-card: #211b17; /* Pumpkin --color-background-card (dark) */
   --bg-chrome: #15100dd9;
-  --bg-composer: var(--gray-3);
-  --border-ui: var(--gray-6);
-  --border-ui-strong: var(--gray-7);
+  --bg-composer: #242221; /* Pumpkin --color-background-surface (dark) */
+  --border-ui: #3d3937; /* Pumpkin --color-border (dark) */
+  --border-ui-strong: #4c4744; /* Pumpkin --color-border-emphasized (dark) */
   --text-primary: var(--gray-12);
   --text-secondary: var(--gray-11);
   --text-placeholder: var(--gray-11); /* clears 4.5:1 on the dark card surface */
@@ -157,6 +163,12 @@
   /* Warm off-white wash in dark, same idea as light: translucent, not opaque. */
   --control-hover: #f0edec1a;
   --control-active: #f0edec2e;
+
+  /* Life-changing in dark: same terracotta fill + white bold text as light, so
+   * the card reads identically in both themes (white on #e86a26 = ~3.4:1, held
+   * to AA-large by the forced bold + 19px floor in app.css). */
+  --life-bg: #e86a26;
+  --life-text: #ffffff;
 
   --danger: #ff8a80;
 }

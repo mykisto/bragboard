@@ -25,7 +25,7 @@
   place-items: center;
   width: 28px;
   height: 28px;
-  border-radius: 9px;
+  border-radius: var(--radius-element);
   background: var(--accent-9);
   color: var(--accent-contrast);
   font-family: var(--font-serif);
@@ -99,7 +99,7 @@
   padding: var(--space-1);
   background: var(--bg-card);
   border: 1px solid var(--border-ui);
-  border-radius: 14px;
+  border-radius: var(--radius-container);
   box-shadow: var(--shadow-lift);
   animation: menu-in var(--dur-fast) var(--ease-out);
 }
@@ -182,7 +182,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-5);
+  padding: var(--space-4);
   background: var(--bg-card);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-rest);
@@ -226,7 +226,8 @@
 }
 
 .card-image {
-  border-radius: calc(var(--radius-card) - 8px);
+  /* Concentric with the card: outer 42px radius minus the 24px padding. */
+  border-radius: calc(var(--radius-card) - var(--space-4));
   object-fit: cover;
   width: 100%;
 }
@@ -244,15 +245,21 @@
   min-height: 96px;
 }
 
-/* Life-changing: the one place the accent fills a whole surface. The deeper
- * terracotta (--life-bg #c04e00) clears WCAG AA with white at any size, so the
- * text just switches color and keeps its chosen size/weight like any card. */
+/* Life-changing: the one place the accent fills a whole surface, filled with
+ * Pumpkin's accent (--life-bg #e86a26). White on it is ~3.4:1 in both themes, so
+ * the text is always forced bold + floored to 19px (--card-text-m) to hold the
+ * AA-large 3:1 bar - identical treatment in light and dark. */
 .card--life {
   background: var(--life-bg);
 }
 
 .card--life .card-text {
   color: var(--life-text);
+  font-weight: 700;
+}
+
+.card--life .card-text--s {
+  font-size: var(--card-text-m); /* 19px floor: bold 19px clears AA-large at 3.4:1 */
 }
 
 /* ---------- Empty state ---------- */
@@ -373,7 +380,7 @@
   padding: var(--space-4);
   background: var(--bg-composer);
   border: 1px solid var(--border-ui);
-  border-radius: 22px;
+  border-radius: var(--radius-container);
   box-shadow: var(--shadow-composer);
   animation: composer-in var(--dur-base) var(--ease-out-expo);
 }
@@ -583,7 +590,7 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  border-radius: 14px;
+  border-radius: var(--radius-container);
   background: var(--gray-12);
   color: var(--gray-1);
   font-size: 0.9375rem;
