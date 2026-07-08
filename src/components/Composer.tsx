@@ -41,6 +41,11 @@ export function Composer({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  // The pill and the expanded composer are different elements, so to animate the
+  // collapse we keep the composer mounted through its exit animation and only
+  // drop it back to the pill once composer-out finishes.
+  const [mounted, setMounted] = useState(expanded);
+  const [closing, setClosing] = useState(false);
 
   const editing = Boolean(draft.editingId);
   const hasDraft = draft.text.trim() !== '' || Boolean(draft.image);
@@ -72,6 +77,18 @@ export function Composer({
     }
   }, [expanded]);
 
+  // Drive the mount / exit-animation lifecycle off the expanded prop: expanding
+  // mounts immediately; collapsing flips into the closing state so composer-out
+  // can play before unmount.
+  useEffect(() => {
+    if (expanded) {
+      setMounted(true);
+      setClosing(false);
+    } else if (mounted) {
+      setClosing(true);
+    }
+  }, [expanded, mounted]);
+
   // Auto-grow the textarea with content, bounded by CSS max-height.
   useEffect(() => {
     const el = textareaRef.current;
@@ -102,7 +119,7 @@ export function Composer({
     }
   };
 
-  if (!expanded) {
+  if (!mounted) {
     return (
       <div className="composer-dock" ref={rootRef}>
         <button
@@ -130,9 +147,15 @@ export function Composer({
   return (
     <div className="composer-dock" ref={rootRef}>
       <div
-        className="composer"
+        className={`composer${closing ? ' composer--closing' : ''}`}
         role="dialog"
         aria-label={editing ? 'Edit card' : 'New card'}
+        onAnimationEnd={(e) => {
+          if (e.animationName === 'composer-out') {
+            setMounted(false);
+            setClosing(false);
+          }
+        }}
       >
         <textarea
           ref={textareaRef}

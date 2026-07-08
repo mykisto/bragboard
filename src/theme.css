@@ -83,8 +83,8 @@
   --radius-inner: 6px;
   --radius-element: 12px;
   --radius-container: 18px;
-  --radius-page: 42px;
-  --radius-card: var(--radius-page); /* 42px - Matcha's signature big-radius card */
+  --radius-page: 36px; /* Matcha ships 42px here; dialed back to 36 - 42 read too round for these cards */
+  --radius-card: var(--radius-page); /* 36px - the card + expanded composer share this */
   --radius-control: var(--radius-element); /* 12px */
   --radius-pill: 999px;
 

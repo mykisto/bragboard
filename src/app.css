@@ -355,11 +355,21 @@
   color: var(--text-placeholder);
   font-size: 1rem;
   text-align: left;
+  /* Reappears from the dock after the composer collapses into it. */
+  transform-origin: bottom center;
+  animation: pill-in var(--dur-base) var(--ease-out);
   transition:
     box-shadow var(--dur-base) var(--ease-out),
     border-color var(--dur-base) var(--ease-out),
     transform var(--dur-base) var(--ease-out),
     width var(--dur-base) var(--ease-out);
+}
+
+@keyframes pill-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
 }
 
 .composer-pill:hover {
@@ -390,15 +400,32 @@
   padding: var(--space-4);
   background: var(--bg-composer);
   border: 1px solid var(--border-ui);
-  border-radius: var(--radius-container);
+  border-radius: var(--radius-card); /* same 36px as the cards, per owner */
   box-shadow: var(--shadow-composer);
+  /* Grows up out of the dock; the pill's exit is the mirror (composer-out). */
+  transform-origin: bottom center;
   animation: composer-in var(--dur-base) var(--ease-out-expo);
+}
+
+/* Collapse: play the reverse, faster (exit ~65% of enter), then Composer.tsx
+ * unmounts on animationend. forwards holds the end frame so it doesn't flash
+ * back to full before the swap to the pill. */
+.composer--closing {
+  pointer-events: none;
+  animation: composer-out var(--dur-fast) var(--ease-out) forwards;
 }
 
 @keyframes composer-in {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.99);
+    transform: translateY(10px) scale(0.96);
+  }
+}
+
+@keyframes composer-out {
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
   }
 }
 
