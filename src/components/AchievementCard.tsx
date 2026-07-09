@@ -1,5 +1,5 @@
-import { memo, useCallback, useEffect, useRef } from 'react';
-import { useDraggable, useDroppable } from '@dnd-kit/core';
+import { memo, useEffect, useRef } from 'react';
+import { useDraggable } from '@dnd-kit/core';
 import type { AchievementCard as CardData } from '../types';
 
 interface Props {
@@ -37,15 +37,6 @@ export const AchievementCard = memo(function AchievementCard({
   // announce the card as a draggable that responds to Space/Enter, which we don't
   // wire up. We set our own a11y below - Enter/Space edits, Ctrl+Arrow reorders.
   const { setNodeRef: setDragRef, listeners } = useDraggable({ id: card.id });
-  const { setNodeRef: setDropRef } = useDroppable({ id: card.id });
-
-  const setRefs = useCallback(
-    (node: HTMLElement | null) => {
-      setDragRef(node);
-      setDropRef(node);
-    },
-    [setDragRef, setDropRef],
-  );
 
   // Report rendered height so the masonry can pack around real content.
   useEffect(() => {
@@ -88,7 +79,7 @@ export const AchievementCard = memo(function AchievementCard({
 
   return (
     <div
-      ref={setRefs}
+      ref={setDragRef}
       className={[
         'card-slot',
         ready && 'card-slot--ready',

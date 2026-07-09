@@ -179,6 +179,35 @@
   animation: card-in 420ms var(--ease-out-expo);
 }
 
+/* Recessed slot left where a lifted card used to sit - darker than the board,
+   so the card's origin stays visible while it follows the cursor. */
+.card-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: var(--radius-card);
+  background: var(--bg-placeholder);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Insertion line - terracotta bar marking where the card will drop. It slides
+   between gaps instead of snapping, so the target reads as a calm, single mark. */
+.card-drop-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 3px;
+  margin-top: -1.5px;
+  border-radius: 2px;
+  background: var(--drop-line);
+  pointer-events: none;
+  /* Below the lifted card (z-index 5) but above the resting cards, so the card
+     you hold always stays on top of the line marking its target. */
+  z-index: 4;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
 @keyframes card-in {
   from {
     opacity: 0;

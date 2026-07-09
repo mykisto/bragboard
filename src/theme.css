@@ -55,6 +55,11 @@
   --text-secondary: var(--gray-11); /* #68615d */
   --text-placeholder: var(--gray-11); /* gray-11, not gray-10: prompt + placeholder must clear 4.5:1 */
 
+  /* Drag affordances: the recessed slot left behind by a lifted card, and the
+   * terracotta insertion line marking where it will drop. */
+  --bg-placeholder: light-dark(#00000012, #ffffff12);
+  --drop-line: var(--accent-9);
+
   /* Warm interactive wash for icon buttons - a translucent gray-brown that lets
    * the cream header show through, instead of an opaque cool gray sitting on top. */
   --control-hover: #877f7a24;

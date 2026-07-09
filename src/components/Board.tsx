@@ -1,14 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  MeasuringStrategy,
-} from '@dnd-kit/core';
-import type { DragMoveEvent, DragOverEvent } from '@dnd-kit/core';
+import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
+import type { DragMoveEvent } from '@dnd-kit/core';
 import type { AchievementCard as CardData } from '../types';
 import { AchievementCard } from './AchievementCard';
 
@@ -35,7 +27,9 @@ export function Board({ cards, lastAddedId, onEdit, onMove }: Props) {
   const [heights, setHeights] = useState<ReadonlyMap<string, number>>(new Map());
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragDelta, setDragDelta] = useState<{ x: number; y: number } | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ overId: string; after: boolean } | null>(null);
   const [ready, setReady] = useState(false);
+  const pointerStart = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -91,20 +85,80 @@ export function Board({ cards, lastAddedId, onEdit, onMove }: Props) {
     useSensor(TouchSensor, { activationConstraint: { delay: 280, tolerance: 8 } }),
   );
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const overIndex = cards.findIndex((c) => c.id === over.id);
-    if (overIndex !== -1) onMove(String(active.id), overIndex);
+  // We do NOT reorder the list mid-drag. Reordering live re-packs every column,
+  // which shifts the dragged card's own home position while its delta keeps
+  // growing from the original grab point - so it drifts off the cursor and the
+  // whole board jumps. Instead the layout stays frozen: only the lifted card
+  // follows the cursor, a recessed slot marks where it came from, and a line
+  // marks where it will land. The single real move happens on drop.
+
+  // Drop target is derived from the cursor position, not dnd-kit's collision:
+  // closestCenter matches by the dragged card's rect center, which drifts far
+  // from the pointer on tall cards and lands the indicator in the wrong column.
+  // We resolve the column under the cursor, then the gap within that column.
+  const targetForPointer = (px: number, py: number) => {
+    const el = containerRef.current;
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    const lx = px - rect.left;
+    const ly = py - rect.top;
+    const cols = columnsFor(containerWidth);
+    const step = colWidth + GAP;
+    const col = Math.max(0, Math.min(cols - 1, Math.floor((lx + GAP / 2) / step)));
+    const colOf = (id: string) => Math.round((positions.get(id)?.x ?? 0) / step);
+    // Cards in this column, already in list order = top-to-bottom.
+    const inCol = cards.filter((c) => c.id !== dragId && colOf(c.id) === col);
+    for (const c of inCol) {
+      const p = positions.get(c.id);
+      if (!p) continue;
+      const h = heights.get(c.id) ?? colWidth * 0.3;
+      if (ly < p.y + h / 2) return { overId: c.id, after: false };
+    }
+    if (inCol.length) return { overId: inCol[inCol.length - 1].id, after: true };
+    // Empty column under the cursor: fall back to the nearest card overall.
+    let best: string | null = null;
+    let bestDist = Infinity;
+    let bestAfter = false;
+    for (const c of cards) {
+      if (c.id === dragId) continue;
+      const p = positions.get(c.id);
+      if (!p) continue;
+      const h = heights.get(c.id) ?? colWidth * 0.3;
+      const cx = p.x + colWidth / 2;
+      const cy = p.y + h / 2;
+      const d = (cx - lx) ** 2 + (cy - ly) ** 2;
+      if (d < bestDist) {
+        bestDist = d;
+        best = c.id;
+        bestAfter = ly > cy;
+      }
+    }
+    return best ? { overId: best, after: bestAfter } : null;
   };
 
   const handleDragMove = (event: DragMoveEvent) => {
     setDragDelta({ x: event.delta.x, y: event.delta.y });
+    const s = pointerStart.current;
+    if (!s) return;
+    const t = targetForPointer(s.x + event.delta.x, s.y + event.delta.y);
+    setDropTarget(t && t.overId !== dragId ? t : null);
+  };
+
+  const handleDragEnd = () => {
+    if (dragId && dropTarget && dropTarget.overId !== dragId) {
+      // Target index is measured in the list with the dragged card removed -
+      // exactly the array moveCard splices into after it pulls the card out.
+      const withoutActive = cards.filter((c) => c.id !== dragId);
+      const overIndex = withoutActive.findIndex((c) => c.id === dropTarget.overId);
+      if (overIndex !== -1) onMove(dragId, overIndex + (dropTarget.after ? 1 : 0));
+    }
+    endDrag();
   };
 
   const endDrag = () => {
     setDragId(null);
     setDragDelta(null);
+    setDropTarget(null);
   };
 
   const handleKeyMove = useCallback(
@@ -116,19 +170,61 @@ export function Board({ cards, lastAddedId, onEdit, onMove }: Props) {
     [cards, onMove],
   );
 
+  const dragPos = dragId ? positions.get(dragId) : null;
+  const dragHeight = dragId ? heights.get(dragId) ?? colWidth * 0.3 : 0;
+
+  // Insertion line: a terracotta bar in the gap above (or below) the hovered
+  // card's frozen slot. GAP/2 centers it in the space between the two cards.
+  let dropLine: { x: number; y: number; width: number } | null = null;
+  if (dropTarget && dropTarget.overId !== dragId) {
+    const pos = positions.get(dropTarget.overId);
+    if (pos) {
+      const h = heights.get(dropTarget.overId) ?? colWidth * 0.3;
+      dropLine = {
+        x: pos.x,
+        y: dropTarget.after ? pos.y + h + GAP / 2 : pos.y - GAP / 2,
+        width: colWidth,
+      };
+    }
+  }
+
   return (
     <div ref={containerRef} className="board-container">
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
-        measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
-        onDragStart={(e) => setDragId(String(e.active.id))}
+        onDragStart={(e) => {
+          setDragId(String(e.active.id));
+          const ae = e.activatorEvent as PointerEvent & { touches?: TouchList };
+          const t = ae.touches?.[0];
+          pointerStart.current = {
+            x: t ? t.clientX : ae.clientX,
+            y: t ? t.clientY : ae.clientY,
+          };
+        }}
         onDragMove={handleDragMove}
-        onDragOver={handleDragOver}
-        onDragEnd={endDrag}
+        onDragEnd={handleDragEnd}
         onDragCancel={endDrag}
       >
         <div className="board" style={{ height: boardHeight > 0 ? boardHeight : undefined }}>
+          {dragId && dragPos && (
+            <div
+              className="card-placeholder"
+              style={{
+                transform: `translate(${dragPos.x}px, ${dragPos.y}px)`,
+                width: colWidth,
+                height: dragHeight,
+              }}
+            />
+          )}
+          {dropLine && (
+            <div
+              className="card-drop-line"
+              style={{
+                transform: `translate(${dropLine.x}px, ${dropLine.y}px)`,
+                width: dropLine.width,
+              }}
+            />
+          )}
           {cards.map((card) => (
             <AchievementCard
               key={card.id}
