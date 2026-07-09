@@ -101,26 +101,25 @@ export default function App() {
     setSrMessage('Card added to the top of your board.');
   }, [draft, addCard]);
 
-  const handleComposerOpenChange = useCallback(
-    (open: boolean) => {
-      if (open) {
-        setComposerOpen(true);
-        return;
-      }
-      setComposerOpen(false);
-      if (draft.editingId) {
-        // A live edit left empty has no card to keep; otherwise it's already saved.
-        if (!draft.text.trim()) deleteCard(draft.editingId);
-        setDraftState(loadDraft() ?? EMPTY_DRAFT);
-      }
-    },
-    [draft, deleteCard],
-  );
+  const handleComposerOpenChange = useCallback((open: boolean) => {
+    setComposerOpen(open);
+  }, []);
+
+  // Runs once the composer has finished animating shut. Restoring the new-card
+  // draft here (not at close-request time) keeps the edit state on screen for the
+  // whole exit, instead of flashing the empty "Add" composer for a frame.
+  const handleComposerClosed = useCallback(() => {
+    if (draft.editingId) {
+      // A live edit left empty has no card to keep; otherwise it's already saved.
+      if (!draft.text.trim()) deleteCard(draft.editingId);
+      setDraftState(loadDraft() ?? EMPTY_DRAFT);
+    }
+  }, [draft, deleteCard]);
 
   const handleDelete = useCallback(
     (id: string) => {
       deleteCard(id);
-      setDraftState(loadDraft() ?? EMPTY_DRAFT);
+      // The draft restore runs in handleComposerClosed, after the exit animation.
       setComposerOpen(false);
       setSrMessage('Card deleted.');
     },
@@ -174,6 +173,7 @@ export default function App() {
           <Board
             cards={cards}
             lastAddedId={lastAddedId.current}
+            editingId={composerOpen ? draft.editingId ?? null : null}
             onEdit={openComposerForEdit}
             onMove={moveCard}
           />
@@ -185,6 +185,7 @@ export default function App() {
         onDraftChange={setDraft}
         expanded={composerOpen}
         onExpandedChange={handleComposerOpenChange}
+        onClosed={handleComposerClosed}
         onSave={handleAdd}
         onDelete={handleDelete}
         onImageError={(msg) => showToast(msg, 'error')}

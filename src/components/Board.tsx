@@ -7,6 +7,8 @@ import { AchievementCard } from './AchievementCard';
 interface Props {
   cards: CardData[];
   lastAddedId: string | null;
+  /** Id of the card currently open in the composer, or null. */
+  editingId: string | null;
   onEdit: (id: string) => void;
   onMove: (id: string, toIndex: number) => void;
 }
@@ -21,7 +23,7 @@ function columnsFor(width: number): number {
   return 1;
 }
 
-export function Board({ cards, lastAddedId, onEdit, onMove }: Props) {
+export function Board({ cards, lastAddedId, editingId, onEdit, onMove }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [heights, setHeights] = useState<ReadonlyMap<string, number>>(new Map());
@@ -235,6 +237,7 @@ export function Board({ cards, lastAddedId, onEdit, onMove }: Props) {
               isDragging={dragId === card.id}
               dragDelta={dragId === card.id ? dragDelta : null}
               isNew={ready && lastAddedId === card.id}
+              isEditing={editingId === card.id}
               ready={ready}
               onEdit={onEdit}
               onHeight={onHeight}

@@ -122,6 +122,8 @@ V1 is done when ALL of the following are true:
 
 When design work needs visual references (patterns, screens, flows), pull them from **Mobbin via the Mobbin MCP** (`mcp__mobbin__search_screens` / `search_flows` / `search_sections`) - it's connected and it's where all prior research for this project happened (mymind, Bento, Portrait, Workable review). Don't substitute generic web search for reference lookups.
 
+When you need how a **DS component behaves** (its states, ring/border/shadow structure, token wiring - e.g. matching a card's hover/active to the Pumpkin text-input), read the **readable StyleX source**, not the compiled output. `@astryxdesign/core` ships `src` in its `files`, so the source is on disk at `/Users/mykist/Claude-Projects/Design/ASTRYX-DS/node_modules/@astryxdesign/core/src/**/*.stylex.ts` (e.g. `Field/inputStyles.stylex.ts` holds the shared input wrapper appearance). Never reverse-engineer state values from `dist/` atomic classes or the compiled `.next` CSS - that's the slow, error-prone path (learned 2026-07-09 doing exactly that for the card hover/active restyle). BragBoard mirrors DS token values by hand (see the Astryx decision-log entries), so copy the structure from the source and map its `--color-*` tokens onto BragBoard's `theme.css` equivalents (`--color-border-emphasized` -> `--border-ui-strong`, `--color-accent` -> `--accent-9`, `--color-accent-muted` -> `--accent-muted`).
+
 ## Design Context
 
 Strategic and visual context for design work live at the project root - read both before any design/UI task:

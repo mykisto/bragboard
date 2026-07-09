@@ -171,6 +171,7 @@
 }
 
 .card-slot--dragging .card {
+  border-color: transparent;
   box-shadow: var(--shadow-drag);
   transform: scale(1.02) rotate(0.4deg);
 }
@@ -222,20 +223,34 @@
   gap: var(--space-3);
   padding: var(--space-4);
   background: var(--bg-card);
+  border: 1px solid var(--border-ui);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-rest);
   overflow: hidden;
   transition:
+    border-color var(--dur-base) var(--ease-out),
     box-shadow var(--dur-base) var(--ease-out),
     transform var(--dur-base) var(--ease-out),
     background-color var(--dur-base) var(--ease-out);
 }
 
+/* Hover + active mirror the Pumpkin text-input, not a lift. Hover draws a soft
+   inset ring (30% of the emphasized border); pressing switches to the input's
+   focus look - accent border + accent-muted inset ring. The card never moves.
+   Hover is excluded while dragging (drag shadow wins) and while editing (the
+   accent state must hold, not be overwritten by the gray hover ring). */
 @media (hover: hover) {
-  .card-slot:hover .card {
-    box-shadow: var(--shadow-lift);
-    transform: translateY(-2px);
+  .card-slot:hover:not(.card-slot--dragging):not(.card-slot--editing) .card {
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--border-ui-strong) 30%, transparent);
   }
+}
+
+/* The input's focus look, held two ways: momentarily while pressed (:active),
+   and for the whole time the card is open in the composer (--editing). Both are
+   dropped while dragging so the drag shadow keeps priority. */
+.card-slot:active:not(.card-slot--dragging) .card,
+.card-slot--editing:not(.card-slot--dragging) .card {
+  border-color: var(--accent-9);
+  box-shadow: inset 0 0 0 2px var(--accent-muted);
 }
 
 .card-text {
@@ -289,6 +304,24 @@
  * AA-large 3:1 bar - identical treatment in light and dark. */
 .card--life {
   background: var(--life-bg);
+  /* A gray border would fight the solid accent, so the edge is a translucent
+     darken of the terracotta instead - defined, but still warm. */
+  border-color: var(--life-border);
+}
+
+/* Same hover->active step-up as normal cards, tuned for the accent fill: the
+   gray/accent rings vanish or muddy on terracotta, so life uses a translucent
+   darken that deepens when pressed. */
+@media (hover: hover) {
+  .card-slot:hover:not(.card-slot--dragging):not(.card-slot--editing) .card--life {
+    box-shadow: inset 0 0 0 2px var(--life-border-hover);
+  }
+}
+
+.card-slot:active:not(.card-slot--dragging) .card--life,
+.card-slot--editing:not(.card-slot--dragging) .card--life {
+  border-color: var(--life-border);
+  box-shadow: inset 0 0 0 2px var(--life-border-active);
 }
 
 .card--life .card-text {
@@ -431,9 +464,11 @@
   border: 1px solid var(--border-ui);
   border-radius: var(--radius-card); /* same 36px as the cards, per owner */
   box-shadow: var(--shadow-composer);
-  /* Grows up out of the dock; the pill's exit is the mirror (composer-out). */
+  /* Grows up out of the dock; the pill's exit is the mirror (composer-out).
+     Enter is deliberately eased (quart, not expo) and a touch longer so it
+     settles instead of snapping to full size. */
   transform-origin: bottom center;
-  animation: composer-in var(--dur-base) var(--ease-out-expo);
+  animation: composer-in var(--dur-repack) var(--ease-out);
 }
 
 /* Collapse: play the reverse, faster (exit ~65% of enter), then Composer.tsx
@@ -441,32 +476,37 @@
  * back to full before the swap to the pill. */
 .composer--closing {
   pointer-events: none;
-  animation: composer-out var(--dur-fast) var(--ease-out) forwards;
+  animation: composer-out var(--dur-base) var(--ease-out) forwards;
 }
 
 @keyframes composer-in {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.96);
+    transform: translateY(8px) scale(0.985);
   }
 }
 
 @keyframes composer-out {
   to {
     opacity: 0;
-    transform: translateY(10px) scale(0.96);
+    transform: translateY(8px) scale(0.985);
   }
 }
 
 .composer__text {
   width: 100%;
-  max-height: 40vh;
+  /* JS auto-grows height to fit the text (no fixed height); this only caps how
+     tall it gets. Past 480px the textarea scrolls, controls stay visible. */
+  max-height: 480px;
+  overflow-y: auto;
   padding: var(--space-2);
   border: none;
   background: none;
   resize: none;
-  font-family: var(--font-serif);
-  font-size: 1.1875rem;
+  /* Editing is plain UI type (sans, 1rem); the serif is only how the finished
+     card renders, not how you write it. Prompt and typed text stay identical. */
+  font-family: var(--font-sans);
+  font-size: 1rem;
   line-height: 1.4;
   color: var(--text-primary);
 }

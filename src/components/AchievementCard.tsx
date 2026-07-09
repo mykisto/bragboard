@@ -10,6 +10,8 @@ interface Props {
   isDragging: boolean;
   dragDelta: { x: number; y: number } | null;
   isNew: boolean;
+  /** This card is open in the composer - hold the accent/focus state while it is. */
+  isEditing: boolean;
   /** Layout transitions stay off until the first pack is measured. */
   ready: boolean;
   onEdit: (id: string) => void;
@@ -25,6 +27,7 @@ export const AchievementCard = memo(function AchievementCard({
   isDragging,
   dragDelta,
   isNew,
+  isEditing,
   ready,
   onEdit,
   onHeight,
@@ -85,6 +88,7 @@ export const AchievementCard = memo(function AchievementCard({
         ready && 'card-slot--ready',
         isDragging && 'card-slot--dragging',
         isNew && 'card-slot--new',
+        isEditing && 'card-slot--editing',
       ]
         .filter(Boolean)
         .join(' ')}

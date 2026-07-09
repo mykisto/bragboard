@@ -16,6 +16,8 @@ interface Props {
   onDraftChange: (draft: Draft) => void;
   expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
+  /** Fires after the collapse animation ends, once the composer is fully gone. */
+  onClosed: () => void;
   onSave: () => void;
   onDelete: (id: string) => void;
   onImageError: (message: string) => void;
@@ -33,6 +35,7 @@ export function Composer({
   onDraftChange,
   expanded,
   onExpandedChange,
+  onClosed,
   onSave,
   onDelete,
   onImageError,
@@ -40,6 +43,10 @@ export function Composer({
   const rootRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Track prior open + edited-card so the textarea can tell a card *switch* (which
+  // should tween its height) from a fresh open or plain typing (which shouldn't).
+  const prevExpandedRef = useRef(false);
+  const prevEditingIdRef = useRef<string | undefined>(undefined);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   // The pill and the expanded composer are different elements, so to animate the
   // collapse we keep the composer mounted through its exit animation and only
@@ -54,7 +61,11 @@ export function Composer({
   useEffect(() => {
     if (!expanded) return;
     const onPointerDown = (e: PointerEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+      const target = e.target as HTMLElement;
+      if (rootRef.current && !rootRef.current.contains(target)) {
+        // Clicking another card swaps the composer's content in place (its onEdit
+        // reloads the draft); don't collapse, or it would close and reopen.
+        if (target.closest?.('.card-slot')) return;
         onExpandedChange(false);
       }
     };
@@ -89,13 +100,36 @@ export function Composer({
     }
   }, [expanded, mounted]);
 
-  // Auto-grow the textarea with content, bounded by CSS max-height.
+  // Auto-grow the textarea to fit its content, bounded by CSS max-height. `mounted`
+  // is in the deps because the textarea only exists once mounted flips true (a
+  // render after `expanded`), so without it the first sizing pass runs while the
+  // ref is still null and a long card would open stuck at its 2-row minimum.
+  // Switching between cards (composer already open, editingId changed) tweens the
+  // height from old to new; a fresh open or plain typing resizes instantly.
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
-    el.style.height = 'auto';
-    el.style.height = `${el.scrollHeight}px`;
-  }, [draft.text, expanded]);
+    const wasOpen = prevExpandedRef.current;
+    const prevEditingId = prevEditingIdRef.current;
+    prevExpandedRef.current = expanded;
+    prevEditingIdRef.current = draft.editingId;
+
+    const switching = wasOpen && expanded && prevEditingId !== draft.editingId;
+    if (switching) {
+      const from = el.offsetHeight;
+      el.style.height = 'auto';
+      const to = el.scrollHeight;
+      el.style.transition = 'none';
+      el.style.height = `${from}px`;
+      void el.offsetHeight; // commit the start height before transitioning
+      el.style.transition = 'height var(--dur-base) var(--ease-out)';
+      el.style.height = `${to}px`;
+    } else {
+      el.style.transition = 'none';
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    }
+  }, [draft.text, draft.editingId, expanded, mounted]);
 
   const set = (patch: Partial<Draft>) => onDraftChange({ ...draft, ...patch });
 
@@ -154,6 +188,7 @@ export function Composer({
           if (e.animationName === 'composer-out') {
             setMounted(false);
             setClosing(false);
+            onClosed();
           }
         }}
       >
