@@ -172,7 +172,7 @@
   --bg-board: var(--accent-1); /* #15100d */
   --bg-card: #211b17; /* Pumpkin --color-background-card (dark) */
   --bg-chrome: #15100dd9;
-  --bg-composer: #242221; /* Pumpkin --color-background-surface (dark) */
+  --bg-composer: #211b17; /* matches --bg-card: the composer/input reads as the same warm surface as the cards, not a cooler gray */
   --border-ui: #423a34; /* Pumpkin --color-border (dark), warmed toward the accent */
   --border-ui-strong: #53483f; /* Pumpkin --color-border-emphasized (dark), warmed toward the accent */
   --accent-muted: #3a2213; /* Pumpkin --color-accent-muted (dark) - input focus ring */

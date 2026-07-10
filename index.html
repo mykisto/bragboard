@@ -6,6 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="A personal board of achievements - evidence for the days you doubt yourself." />
     <meta name="theme-color" content="#fff6f0" />
+    <script>
+      // Apply the saved theme before first paint so a dark-mode user never sees a
+      // flash of the light board. Also seeds the mobile browser-chrome color.
+      (function () {
+        try {
+          var t = localStorage.getItem('bragboard:theme') === 'dark' ? 'dark' : 'light';
+          var bg = t === 'dark' ? '#15100d' : '#fff6f0';
+          document.documentElement.dataset.theme = t;
+          // Paint the board color immediately. In dev, Vite injects the CSS via JS
+          // after parse, so without this the page flashes UA-white until it lands.
+          document.documentElement.style.backgroundColor = bg;
+          var m = document.querySelector('meta[name="theme-color"]');
+          if (m) m.content = bg;
+        } catch (e) {}
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

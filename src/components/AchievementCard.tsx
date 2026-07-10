@@ -1,6 +1,8 @@
 import { memo, useEffect, useRef } from 'react';
 import { useDraggable } from '@dnd-kit/core';
+import { DotsSix } from '@phosphor-icons/react';
 import type { AchievementCard as CardData } from '../types';
+import { Tooltip } from './Tooltip';
 
 interface Props {
   card: CardData;
@@ -81,6 +83,7 @@ export const AchievementCard = memo(function AchievementCard({
   const life = card.lifeChanging;
 
   return (
+    <Tooltip content="Click to edit · drag to reorder" delay={500}>
     <div
       ref={setDragRef}
       className={[
@@ -97,11 +100,11 @@ export const AchievementCard = memo(function AchievementCard({
         transform: `translate(${tx}px, ${ty}px)`,
       }}
       {...listeners}
+      data-card-id={card.id}
       role="button"
       tabIndex={0}
       aria-label={card.text}
       aria-keyshortcuts="Control+ArrowUp Control+ArrowDown"
-      title="Click to edit · drag to reorder"
       onPointerDownCapture={(e) => {
         pointerDown.current = { x: e.clientX, y: e.clientY };
       }}
@@ -113,6 +116,10 @@ export const AchievementCard = memo(function AchievementCard({
         className={['card', life && 'card--life'].filter(Boolean).join(' ')}
         style={{ minHeight: width * 0.3, maxHeight: width * 1.5 }}
       >
+        {/* Desktop hover affordance that the whole card is draggable to reorder. */}
+        <span className="card-drag-handle" aria-hidden>
+          <DotsSix size={20} />
+        </span>
         {card.image && card.layout === 'split' ? (
           <div className="card-split">
             <p className={`card-text ${sizeClass}`}>{card.text}</p>
@@ -128,5 +135,6 @@ export const AchievementCard = memo(function AchievementCard({
         )}
       </article>
     </div>
+    </Tooltip>
   );
 });

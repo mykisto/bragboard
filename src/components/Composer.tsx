@@ -10,6 +10,8 @@ import {
 } from '@phosphor-icons/react';
 import type { Draft, FontSize, CardLayout } from '../types';
 import { prepareImage } from '../utils/image';
+import { Menu, MenuItem } from './Menu';
+import { Tooltip } from './Tooltip';
 
 interface Props {
   draft: Draft;
@@ -43,6 +45,21 @@ export function Composer({
   const rootRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const pillRef = useRef<HTMLButtonElement>(null);
+  const sizeTriggerRef = useRef<HTMLButtonElement>(null);
+  const [sizeMenuOpen, setSizeMenuOpen] = useState(false);
+  // Live flag so the document Escape handler (stale closure) can tell whether the
+  // size menu owns this Escape - if it does, the composer must not also collapse.
+  const sizeMenuOpenRef = useRef(false);
+  sizeMenuOpenRef.current = sizeMenuOpen;
+  // Set when a close is keyboard-initiated (Escape / Cmd+Enter) so focus isn't
+  // dropped on <body>. 'pill' returns to the composer pill (new-card compose);
+  // a card id returns to the card that was being edited. Null = mouse close, leave
+  // focus alone. Keep a live editingId ref so the document-level Escape handler
+  // (whose closure is stale) reads the current card.
+  const refocusTarget = useRef<'pill' | string | null>(null);
+  const editingIdRef = useRef(draft.editingId);
+  editingIdRef.current = draft.editingId;
   // Track prior open + edited-card so the textarea can tell a card *switch* (which
   // should tween its height) from a fresh open or plain typing (which shouldn't).
   const prevExpandedRef = useRef(false);
@@ -56,6 +73,7 @@ export function Composer({
 
   const editing = Boolean(draft.editingId);
   const hasDraft = draft.text.trim() !== '' || Boolean(draft.image);
+  const sizeLabel = FONT_SIZE_OPTIONS.find((o) => o.value === draft.fontSize)?.label ?? 'Medium';
 
   // Click outside collapses; the draft is preserved by design - no Cancel button.
   useEffect(() => {
@@ -70,7 +88,13 @@ export function Composer({
       }
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onExpandedChange(false);
+      if (e.key === 'Escape') {
+        // The size menu owns Escape while it's open - let it close first, keep the
+        // composer open.
+        if (sizeMenuOpenRef.current) return;
+        refocusTarget.current = editingIdRef.current ?? 'pill';
+        onExpandedChange(false);
+      }
     };
     document.addEventListener('pointerdown', onPointerDown);
     document.addEventListener('keydown', onKeyDown);
@@ -99,6 +123,24 @@ export function Composer({
       setClosing(true);
     }
   }, [expanded, mounted]);
+
+  // Once the composer has fully collapsed back to the pill, restore focus if the
+  // close came from the keyboard: to the edited card if it still exists, else the
+  // pill (new card, or the card was deleted on close).
+  useEffect(() => {
+    if (mounted) return;
+    const target = refocusTarget.current;
+    if (!target) return;
+    refocusTarget.current = null;
+    if (target !== 'pill') {
+      const card = document.querySelector<HTMLElement>(`[data-card-id="${CSS.escape(target)}"]`);
+      if (card) {
+        card.focus();
+        return;
+      }
+    }
+    pillRef.current?.focus();
+  }, [mounted]);
 
   // Auto-grow the textarea to fit its content, bounded by CSS max-height. `mounted`
   // is in the deps because the textarea only exists once mounted flips true (a
@@ -148,8 +190,13 @@ export function Composer({
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault();
       // Editing is already live; Cmd+Enter just closes. New cards commit on Add.
-      if (editing) onExpandedChange(false);
-      else if (draft.text.trim()) onSave();
+      if (editing) {
+        refocusTarget.current = draft.editingId ?? 'pill';
+        onExpandedChange(false);
+      } else if (draft.text.trim()) {
+        refocusTarget.current = 'pill';
+        onSave();
+      }
     }
   };
 
@@ -157,6 +204,7 @@ export function Composer({
     return (
       <div className="composer-dock" ref={rootRef}>
         <button
+          ref={pillRef}
           type="button"
           className="composer-pill"
           onClick={() => onExpandedChange(true)}
@@ -206,34 +254,56 @@ export function Composer({
         {draft.image && (
           <div className="composer__preview">
             <img src={draft.image} alt="Attached image preview" decoding="async" />
-            <button
-              type="button"
-              className="composer__preview-remove"
-              aria-label="Remove image"
-              onClick={() => set({ image: undefined })}
-            >
-              <X size={14} aria-hidden />
-            </button>
+            <Tooltip content="Remove image" placement="above">
+              <button
+                type="button"
+                className="composer__preview-remove"
+                aria-label="Remove image"
+                onClick={() => set({ image: undefined })}
+              >
+                <X size={14} aria-hidden />
+              </button>
+            </Tooltip>
           </div>
         )}
 
         <div className="composer__controls">
           <div className="composer__group">
-            <label className="composer__size">
-              <span className="visually-hidden">Text size</span>
-              <select
-                value={draft.fontSize}
-                onChange={(e) => set({ fontSize: e.target.value as FontSize })}
-                aria-label="Text size"
+            <div className="composer__size">
+              <button
+                ref={sizeTriggerRef}
+                type="button"
+                className="composer__size-trigger"
+                aria-haspopup="menu"
+                aria-expanded={sizeMenuOpen}
+                aria-label={`Text size: ${sizeLabel}`}
+                onClick={() => setSizeMenuOpen((o) => !o)}
+              >
+                {sizeLabel}
+                <CaretDown size={14} aria-hidden />
+              </button>
+              <Menu
+                open={sizeMenuOpen}
+                onClose={() => setSizeMenuOpen(false)}
+                triggerRef={sizeTriggerRef}
+                placement="above"
+                align="start"
+                label="Text size"
               >
                 {FONT_SIZE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
+                  <MenuItem
+                    key={o.value}
+                    label={o.label}
+                    selected={draft.fontSize === o.value}
+                    onSelect={() => {
+                      set({ fontSize: o.value });
+                      setSizeMenuOpen(false);
+                      sizeTriggerRef.current?.focus();
+                    }}
+                  />
                 ))}
-              </select>
-              <CaretDown size={14} className="composer__size-caret" aria-hidden />
-            </label>
+              </Menu>
+            </div>
 
             {draft.image && (
               <div className="composer__layout" role="group" aria-label="Card layout">
@@ -243,16 +313,17 @@ export function Composer({
                     { value: 'split', label: 'Text beside image', Icon: Columns },
                   ] as Array<{ value: CardLayout; label: string; Icon: typeof Rows }>
                 ).map(({ value, label, Icon }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className="icon-button"
-                    aria-label={label}
-                    aria-pressed={draft.layout === value}
-                    onClick={() => set({ layout: value })}
-                  >
-                    <Icon size={18} aria-hidden />
-                  </button>
+                  <Tooltip key={value} content={label} placement="above">
+                    <button
+                      type="button"
+                      className="icon-button"
+                      aria-label={label}
+                      aria-pressed={draft.layout === value}
+                      onClick={() => set({ layout: value })}
+                    >
+                      <Icon size={18} aria-hidden />
+                    </button>
+                  </Tooltip>
                 ))}
               </div>
             )}
@@ -287,14 +358,16 @@ export function Composer({
               </button>
             )}
 
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="Attach an image"
-              onClick={() => fileRef.current?.click()}
-            >
-              <ImageSquare size={18} aria-hidden />
-            </button>
+            <Tooltip content="Attach an image" placement="above">
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="Attach an image"
+                onClick={() => fileRef.current?.click()}
+              >
+                <ImageSquare size={18} aria-hidden />
+              </button>
+            </Tooltip>
             <input
               ref={fileRef}
               type="file"

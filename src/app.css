@@ -100,23 +100,56 @@
   position: relative;
 }
 
+/* Popover menu - mirrors the Astryx (Pumpkin) DropdownMenu: --radius-container
+   surface, --space-1 padding, a hairline gap between items so their hover fills
+   read as separate rows. Placement/alignment come from modifier classes so one
+   style serves the header overflow (below/end) and the composer size picker
+   (above/start). */
 .menu {
   position: absolute;
-  top: calc(100% + var(--space-2));
-  right: 0;
-  min-width: 190px;
+  z-index: 1;
+  min-width: 168px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   padding: var(--space-1);
-  background: var(--bg-card);
+  background: var(--bg-composer);
   border: 1px solid var(--border-ui);
   border-radius: var(--radius-container);
-  box-shadow: var(--shadow-lift);
-  animation: menu-in var(--dur-fast) var(--ease-out);
+  box-shadow: var(--shadow-composer);
 }
 
-@keyframes menu-in {
+.menu--below {
+  top: calc(100% + var(--space-2));
+  transform-origin: top;
+  animation: menu-in-below var(--dur-fast) var(--ease-out);
+}
+
+.menu--above {
+  bottom: calc(100% + var(--space-2));
+  transform-origin: bottom;
+  animation: menu-in-above var(--dur-fast) var(--ease-out);
+}
+
+.menu--start {
+  left: 0;
+}
+
+.menu--end {
+  right: 0;
+}
+
+@keyframes menu-in-below {
   from {
     opacity: 0;
     transform: translateY(-4px);
+  }
+}
+
+@keyframes menu-in-above {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
   }
 }
 
@@ -125,19 +158,42 @@
   align-items: center;
   gap: var(--space-2);
   width: 100%;
-  padding: var(--space-2) var(--space-3);
+  /* radius = container(18) - padding(6), so items nest concentrically in the menu */
+  padding: var(--space-2) var(--space-2);
   border-radius: var(--radius-control);
   color: var(--text-primary);
   font-size: 0.9375rem;
+  text-align: left;
   transition: background-color var(--dur-fast) var(--ease-out);
 }
 
-.menu__item:hover {
-  background: var(--gray-3);
+.menu__item:hover,
+.menu__item:focus-visible {
+  background: var(--control-hover);
 }
 
 .menu__item:active {
-  background: var(--gray-4);
+  background: var(--control-active);
+}
+
+.menu__item-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--text-secondary);
+}
+
+.menu__item-label {
+  flex: 1;
+}
+
+/* Reserved column so labels align whether or not a row shows its checkmark. */
+.menu__item-check {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 16px;
+  color: var(--accent-11);
 }
 
 /* ---------- Board & cards ---------- */
@@ -231,6 +287,34 @@
     box-shadow var(--dur-base) var(--ease-out),
     transform var(--dur-base) var(--ease-out),
     background-color var(--dur-base) var(--ease-out);
+}
+
+/* Drag handle: a small dot grid in the card's top padding gutter (clear of the
+   text) that fades in on hover to signal the whole card is draggable to reorder.
+   It's a hint only - the card itself is the drag target - so it takes no pointer
+   events. Desktop only; on touch, long-press lifts the card. */
+.card-drag-handle {
+  position: absolute;
+  top: var(--space-1);
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  color: var(--gray-8);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+/* Gray muddies on the terracotta fill; a translucent white reads cleanly. */
+.card--life .card-drag-handle {
+  color: color-mix(in srgb, var(--life-text) 55%, transparent);
+}
+
+@media (hover: hover) {
+  .card-slot:hover:not(.card-slot--dragging):not(.card-slot--editing) .card-drag-handle {
+    opacity: 1;
+  }
 }
 
 /* Hover + active mirror the Pumpkin text-input, not a lift. Hover draws a soft
@@ -544,6 +628,14 @@
   transition: transform var(--dur-fast) var(--ease-out);
 }
 
+/* The X stays a small 24px corner mark, but an invisible expander gives it a
+   full 44px tap target so it's not a miss-prone dot on touch. */
+.composer__preview-remove::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+}
+
 .composer__preview-remove:hover {
   transform: scale(1.1);
 }
@@ -565,55 +657,56 @@
 
 .composer__size {
   position: relative;
-  display: inline-flex;
-  align-items: center;
 }
 
-.composer__size select {
-  appearance: none;
+.composer__size-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   height: var(--control-h);
-  padding: 0 var(--space-6) 0 var(--space-3);
+  padding-inline: var(--space-3);
   border: 1px solid var(--border-ui);
   border-radius: var(--radius-pill);
   background: var(--bg-composer);
   color: var(--text-secondary);
   font-family: var(--font-sans);
   font-size: 0.875rem;
-  cursor: pointer;
   transition:
     border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
 }
 
-.composer__size select:hover {
+.composer__size-trigger:hover,
+.composer__size-trigger[aria-expanded='true'] {
   border-color: var(--border-ui-strong);
-  background: var(--gray-2);
+  background: var(--control-hover);
 }
 
-.composer__size-caret {
-  position: absolute;
-  top: 50%;
-  right: var(--space-3);
-  transform: translateY(-50%);
+/* Caret flips to point up while the menu is open above it. */
+.composer__size-trigger svg {
   color: var(--text-secondary);
-  pointer-events: none;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.composer__size-trigger[aria-expanded='true'] svg {
+  transform: rotate(180deg);
 }
 
 .composer__layout {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: 0;
   height: var(--control-h);
-  padding-inline: var(--space-1);
+  padding: 3px;
   border: 1px solid var(--border-ui);
   border-radius: var(--radius-pill);
 }
 
-/* Segments sit inside the switcher pill, so they're inset from --control-h
- * rather than taking it themselves - the wrapper is what aligns to the row. */
+/* Two 32px segments inside the 40px wrapper: 3px padding + 1px border top and
+ * bottom leaves exactly 32px, so the switcher stays a tight segmented pill. */
 .composer__layout .icon-button {
-  width: calc(var(--control-h) - var(--space-2));
-  height: calc(var(--control-h) - var(--space-2));
+  width: 32px;
+  height: 32px;
 }
 
 .composer__life {
@@ -633,7 +726,13 @@
     border-color var(--dur-fast) var(--ease-out);
 }
 
-.composer__life:hover {
+/* Off state: hover only warms the background a touch (like the icon buttons);
+   the stronger terracotta tint is the press feedback, previewing the on-fill. */
+.composer__life:not([aria-pressed='true']):hover {
+  background: var(--control-hover);
+}
+
+.composer__life:not([aria-pressed='true']):active {
   background: var(--accent-3);
   border-color: var(--accent-6);
   color: var(--accent-11);
@@ -738,14 +837,74 @@
 }
 
 .toast__dismiss {
+  position: relative;
   flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin: -4px -4px -4px 0; /* keep the visual box tight; the hit area extends past it */
   opacity: 0.7;
   font-size: 0.8125rem;
   transition: opacity var(--dur-fast) var(--ease-out);
 }
 
+/* 24px glyph, 44px tap target. */
+.toast__dismiss::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+}
+
 .toast__dismiss:hover {
   opacity: 1;
+}
+
+/* ---------- Tooltip ---------- */
+
+/* Mirrors the Astryx (Pumpkin) Tooltip: inverted surface (same --gray-12 / --gray-1
+   as the toast), quiet caption type. Radius is dialed to --radius-element rather than
+   the DS --radius-container, matching the same "too round for the size" call already
+   made on the cards. Portaled to <body> and fixed-positioned from JS, so it clears
+   every stacking context. */
+.tooltip {
+  position: fixed;
+  z-index: 40; /* z-scale: header 10, composer 20, toast 30, tooltip 40 */
+  max-width: 260px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-element);
+  background: var(--gray-12);
+  color: var(--gray-1);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  text-align: center;
+  box-shadow: var(--shadow-lift);
+  pointer-events: none;
+}
+
+.tooltip--above {
+  transform: translate(-50%, -100%);
+  animation: tooltip-in-above var(--dur-fast) var(--ease-out);
+}
+
+.tooltip--below {
+  transform: translate(-50%, 0);
+  animation: tooltip-in-below var(--dur-fast) var(--ease-out);
+}
+
+@keyframes tooltip-in-above {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% + 3px));
+  }
+}
+
+@keyframes tooltip-in-below {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -3px);
+  }
 }
 
 /* ---------- Utilities ---------- */
